@@ -3,13 +3,28 @@ import genError
 
 population = 80
 
+
+#Evaluation Function which tries to maximize the number of similar haplotypes.
+#The set of haplotypes with larger number of similar haplotypes will receive a higher score.
+def eval_hap(individual):
+	score = 0
+	number = len(individual[:][:])
+	for i in range(number):
+		for j in range(i+1,number):
+			if individual[i]==individual[j]:
+				score+=1
+				#print "*****"	
+	return score
+
+
+#This structure helps to sort the individuals based on their score to 
 class FitnessIndividual:
 	def __init__(self,score,ind):
 		self.fitness = score
 		self.individual = ind
 
 
-
+#This class is for keeping track of population of every generation and the best individual in the generatoin.
 class Generation:
 	def __init__(self, individuals, number):
 		self.individuals = individuals
@@ -24,12 +39,15 @@ class Generation:
 				self.bestScore = eval_hap(individual)
 				self.bestIndividual = individual
 
+
+#This function reads the first population which is the result of running collhaps algorithm.
+#It reads some individuals for selecting in every step of genetic algorithm in "nextGenerations_collHapse".
 def read_first_pop():
 	global first_gen
 	global nextGenerations_collHapse
 	count = 0
 	line = ""
-	input_file = open("ACEGen200.txt")
+	input_file = open("Out_ACEGEN.txt")
 	pop = []
 	line = input_file.readline()
 	gen_count = int(line)
@@ -44,7 +62,6 @@ def read_first_pop():
 			
 			count +=1
 			if count == gen_count:
-				#print pop
 				if (len(first_gen)<population):
 					first_gen.append(pop)			
 				else:
@@ -55,6 +72,7 @@ def read_first_pop():
 		else:
 			break
 
+#Mutates the SNP sites of an individual by some probability.
 def mutate(individual):
 	new_individual = []
 	for i in range(0,len(individual)/2):
@@ -65,7 +83,7 @@ def mutate(individual):
 				new_hap1.append(individual[2*i][j])
 				new_hap2.append(individual[2*i][j])
 			else:
-				if random.random()<0.05:
+				if random.random()<0.5: #Some Probability
 					new_hap1.append(individual[2*i+1][j])
 					new_hap2.append(individual[2*i][j])
 				else:
@@ -76,7 +94,8 @@ def mutate(individual):
 		new_individual.append(new_hap2)
 	return new_individual
 
-
+#Doing Crossover for genetic steps. In this function some haplotype pairs are randomly chosen and interchanged between two indivudulas to 
+#generate two new individuals.
 def crossOver(individual1, individual2):
 	tempInd1 = []
 	tempInd2 = []
@@ -106,27 +125,7 @@ def crossOver(individual1, individual2):
 
 	return tempInd1, tempInd2
 
-def eval_hap(individual):
-	score = 0
-	number = len(individual[:][:])
-	for i in range(number):
-		for j in range(i+1,number):
-			if individual[i]==individual[j]:
-				score+=1
-				#print "*****"	
-	return score
-
-def eval_hap1(individual):
-	score = 0
-	number = len(individual[:][:])
-	for i in range(number/2):
-		for j in range(i+2, number):
-			for k in range(len(individual[2*i])):
-				if individual[2*i][k]==individual[j][k]:
-					score+=1
-	return score
-	
-	
+#Choosing some of individuals randomly from previous generation.
 def getFromPrevGen(generation, k):
 	#Let's try randomly choosing
 	tempGen = []
@@ -139,7 +138,7 @@ def getFromPrevGen(generation, k):
 		tempGen.remove(choice)
 	return selected
 
-
+#Selecting best k individuals of a generation based on eval_hap.
 def getBestK(generation, k):
 	fitList = []
 	for pop in generation:
@@ -153,31 +152,15 @@ def getBestK(generation, k):
 		result.append(sorted_list[i].individual)
 	return result
 
-
+#Mutate generatoin and returns the best k mutated individuals
 def getBestMutated(generation, k):
 	mutated = []
 	for pop in generation:
 		mutated.append(mutate(pop))
 	return getBestK(mutated, k)
 
-
-def getFromCollhapse(generationNumber, k):
-	global nextGenerations_collHapse
-	selected = []
-#	for i in range((generationNumber-1)*k, generationNumber*k):
-#		selected.append(nextGenerations_collHapse[i])
-	for i in range(k):
-		choice = random.choice(nextGenerations_collHapse)
-		selected.append(choice)
-	return selected
-
-def printGeneration(generation):
-	for pop in generation:
-		for row in pop:
-			print pop
-		print eval_hap(pop)
-		print "*******************"
-
+#Generate new indivudulas from previous generation by crossing over the previous individals
+#Randomly choose pairs of individals.
 def getBestCrossover(generation, k):
 	tempGen = []
 	for pop in generation:
@@ -198,15 +181,26 @@ def getBestCrossover(generation, k):
 	
 	return getBestK(crossOveres, k)
 
+#Select some individuals from collhaps results in every genetic iteration.
+def getFromCollhapse(generationNumber, k):
+	global nextGenerations_collHapse
+	selected = []
+#	for i in range((generationNumber-1)*k, generationNumber*k):
+#		selected.append(nextGenerations_collHapse[i])
+	for i in range(k):
+		choice = random.choice(nextGenerations_collHapse)
+		selected.append(choice)
+	return selected
+
+
 def generateNextGeneration(generation, generationNumber):
 	bestMutated = getBestMutated(generation, 20)
-	bestCrossovers = getBestCrossover(generation,20)
-		
+	bestCrossovers = getBestCrossover(generation,20)		
 	prevGenSelection = getFromPrevGen(generation, 20)
 	collHapseSelection = getFromCollhapse(generationNumber, 20)
 	nextGenGenerator = bestMutated + bestCrossovers + prevGenSelection + collHapseSelection
 
-	bestK = getBestK(nextGenGenerator, 2)
+	bestK = getBestK(nextGenGenerator, 30)
 
 	fitList = []
 	for pop in generation:
@@ -221,8 +215,9 @@ def generateNextGeneration(generation, generationNumber):
 		else:
 			nextGen.append(sorted_list[i].individual)
 	
-	return nextGen
-
+	return nextGen	
+	
+#Runs genetic iterations "minRun" times.
 def runGenetic(minRun):
 	global first_gen
 	counter = 0
@@ -242,6 +237,13 @@ def runGenetic(minRun):
 			#check Convergance
 			return generations[counter-1]
 
+#Function for printing an entire generatoin by the score of each individual
+def printGeneration(generation):
+	for pop in generation:
+		for row in pop:
+			print pop
+		print eval_hap(pop)
+		print "*******************"
 
 
 def main():
@@ -250,19 +252,32 @@ def main():
 
 	first_gen = []
 	nextGenerations_collHapse = []
-
+	
 	read_first_pop()
 	print "first gen"
 	print len(first_gen)
-	generation = runGenetic(200)
+	generation = runGenetic(100)
 	bestIndividual = generation.bestIndividual
+	
 
+	
 	hap_file = open("ACEHAP_Result.txt",'w')
 	for hap in bestIndividual:
 		for pos in hap:
 			hap_file.write(str(pos))
 		hap_file.write("\n")
-		
+
+	print 
+	number = len(bestIndividual[:][:])
+	for i in range(len(bestIndividual)):
+		print i , "\t" , bestIndividual[i]
+	print
+	for i in range(number):
+		for j in range(i+1,number):
+			if bestIndividual[i]==bestIndividual[j]:
+				print i, j
+	
+	
 	hap_file.close()
 
 	genError.clac_genotype_error()

@@ -1,0 +1,283 @@
+    #!/ufsr/bin/perl 
+    use strict;
+    my(@FitNess);
+    my(@Population);
+    my(@VH);
+    my($Generation);
+    my($i);
+    my($Inf)=1000;
+    my(@Temp);
+    my($size);
+    my(@size2);
+#***********************************************************************************************************************************
+     @VH=Initialize();
+     $size=@VH;
+    print(join("\n",@VH));
+    print("\n\n");
+    @Temp=MakeIndividual(@VH);
+    print(join("\n",@Temp));
+    print("\n\n");
+     print($size);
+     print("\n");
+     print(filehandelO $size);
+     print(filehandelO "\n");
+    MakeFirstPop(\@VH,\@Population,\@FitNess,\$size);   #make the first population	
+#***********************************************************************************************************************************
+
+
+sub Initialize()
+{
+    my($Name);
+    my($OutName);
+    my($Line);
+    my(@H);
+    my(@Temp);
+
+    print("Please Enter The Name of the file:\n");  	#read input file 
+    $Name=<STDIN>;
+    chomp($Name);
+
+
+    @Temp=split(/\./,$Name);  #based on input file choose the name of output file
+    $OutName=$Temp[0];
+    unless(open(filehandelO,">Out_".$OutName.".txt"))
+    {
+        print("error");
+        exit;
+    }
+    unless(open(filehandelI,$Name.".txt"))
+    {
+        print("error");
+        exit;
+    }
+    while($Line=<filehandelI>) #read the file and make two haplotypes for each genotype
+    {
+	chomp($Line);
+	push(@H,$Line);
+	push(@H,$Line);
+    }
+
+    return(@H);
+}
+
+sub MakeFirstPop()
+{
+    my($VH,$Pop,$Fit,$size)=@_;
+    my($Num)=200;
+    my(@Temp);
+
+    while(@$Pop<$Num) #number of times which try to solve the input
+    {
+	@Temp=MakeIndividual(@$VH);
+	push(@$Pop,join("\n",@Temp));;
+	push(@$Fit,Fitness(@Temp));
+    }
+	my($i);#d
+	for($i=0;$i<@$Pop;++$i)#d
+	{
+		print(filehandelO $$Pop[$i]);#d
+		print(filehandelO "\n===============\n");#d
+	}
+	
+    return ();
+}
+
+sub MakeIndividual()
+{
+    my(@VH)=@_;
+    my($k);
+    my(@H)=@VH;
+    my($i);
+    my($j);
+    my($c);
+    my(@NewH);
+    my(@A1);
+    my(@A2);
+    $k=-1;
+    while(1)
+    {	
+	for($i=0;$i<@H;++$i)
+	{
+	    for($j=0;$j<@H;$j++)
+	    {
+		if($j==$k || $i==$k)
+		{
+		    $NewH[$i][$j]=$Inf;
+		}
+		else
+		{
+		    $NewH[$i][$j]=TAF($H[$i],$H[$j]);
+		}
+	    }
+	}
+	
+    ($i,$j,$c)=MIN(@NewH);
+
+
+	$k=$j;
+	if($c==$Inf)
+	{
+	    last;
+	}
+	if($i%2==0 && $j%2==0)
+	{
+	    ($H[$i],$H[$i+1],$H[$j],$H[$j+1])=Complete($H[$i],$H[$i+1],$H[$j],$H[$j+1]);
+	}
+	elsif($i%2==0 && $j%2!=0)
+	{
+	    ($H[$i],$H[$i+1],$H[$j],$H[$j-1])=Complete($H[$i],$H[$i+1],$H[$j],$H[$j-1]);
+	}
+	elsif($i%2!=0 && $j%2==0)
+	{
+	    ($H[$i],$H[$i-1],$H[$j],$H[$j+1])=Complete($H[$i],$H[$i-1],$H[$j],$H[$j+1]);
+	}
+	else
+	{
+	    ($H[$i],$H[$i-1],$H[$j],$H[$j-1])=Complete($H[$i],$H[$i-1],$H[$j],$H[$j-1]);
+
+	}
+    }
+    for($i=0;$i<@H;$i=$i+2)
+    {
+	@A1=split("",$H[$i]);
+	@A2=split("",$H[$i+1]);
+	for($j=0;$j<@A1;++$j)
+	{
+	    if($A1[$j]==2)
+	    {
+		$k=int(rand(2));
+		$A1[$j]=$k;
+		$A2[$j]=1-$k;
+	    }
+	    $H[$i]=join("",@A1);
+	    $H[$i+1]=join("",@A2);
+	}
+    }
+
+    return(@H);
+}
+	    
+sub TAF()
+{
+    my($H1,$H2)=@_;
+    my(@A1);
+    my(@A2);
+    my($cnt)=0;
+    my($i);
+    @A1=split("",$H1);
+    @A2=split("",$H2);
+    for($i=0 ;$i<@A1;++$i)
+    {
+	if(abs ($A1[$i]-$A2[$i])>0)
+	{
+	    if(($A1[$i]==1 && $A2[$i]==0) || ($A1[$i]==0 && $A2[$i]==1))
+	    {
+		return($Inf);
+	    }
+	    $cnt++;
+	}
+    }
+    if($cnt==0)
+    {
+	return($Inf);
+    }
+    return($cnt);
+}
+
+sub MIN()
+{
+    my(@NewH)=@_;
+    my($min)=$Inf;
+    my($imin);
+    my($i);
+    my($j);
+    my($jmin);
+    for($i=0;$i<@NewH;++$i)
+    {
+	for($j=0;$j<@NewH;++$j)
+	{
+	    if($NewH[$i][$j] <$min)
+	    {
+		$imin=$i;
+		$jmin=$j;
+		$min=$NewH[$i][$j];
+	    }
+	    elsif($NewH[$i][$j]==$min)
+	    {
+		if(rand(1)> 0.5)
+		{
+		    $imin=$i;
+		    $jmin=$j;
+		}
+	    }
+	}
+    }
+    return ($imin,$jmin,$min);
+}
+
+
+
+sub Complete()   #following the collapse rule which was described in the report
+{
+    my($H1,$HC1,$H2,$HC2)=@_;
+    my(@AC1);
+    my(@A1);
+    my(@AC2);
+    my(@A2);
+    my($i);
+
+    @AC1=split("",$HC1);
+    @A1=split("",$H1);
+    @AC2=split("",$HC2);
+    @A2=split("",$H2);
+    for($i=0 ; $i<@A1 ; $i++)
+    {
+	if($A1[$i]==2  && $A2[$i]==0)
+	{
+	    $A1[$i]=0;
+	    $AC1[$i]=1;
+	}
+	elsif($A1[$i]==2 && $A2[$i]==1)
+	{
+	    $A1[$i]=1;
+	    $AC1[$i]=0;
+	}
+	elsif($A2[$i]==2 && $A1[$i]==1)
+	{
+	    $A2[$i]=1;
+	    $AC2[$i]=0;
+	}
+	elsif($A2[$i]==2 && $A1[$i]==0)
+	{
+	    $A2[$i]=0;
+	    $AC2[$i]=1;
+	}
+    }
+    return(join("",@A1),join("",@AC1),join("",@A2),join("",@AC2));
+}
+
+sub Fitness()
+{
+    my(@H)=@_;
+    my($i);
+    my($j);
+    my($cnt);
+    for($i=0;$i<@H;++$i)
+    {
+	for($j=$i+1;$j<@H;++$j)
+	{
+		if(!($H[$i] eq ""))
+		{
+		    if($H[$i] eq $H[$j])
+		    {
+			$H[$j]="";
+			++$cnt;
+		    }
+		}
+	}
+    }
+    return(@H-$cnt);
+}
+
+
+

@@ -2,14 +2,13 @@ import random
 
 def makeGenotypes(fileName):
 	f = open(fileName)
-	f = open('IBD178T.hap-2.txt','r')
 	lines = f.readlines()
 
 	gens = []
 	row = int(lines[0])
 	base= int(lines[1])
 	haps=[]
-	for x in xrange(1,200): #Insert the desired number of genotypes here.
+	for x in xrange(1,21): #Insert the desired number of genotypes here.
 		gen =[]
 
 		#To select two haplotype from dataset to generate a genotype
@@ -57,9 +56,8 @@ def  outputGeneratedGensHaps(gens, haps, genFile, hapFile):
 	#print gens
 	
 def main():
-	(gens, haps) = makeGenotypes("IBD178T.hap-2.txt")
-	outputGeneratedGensHaps(gens, haps, "IBDGen200.txt", "IBDHAP200.txt")
+	(gens, haps) = makeGenotypes("ACEHaploPairs.txt")
+	outputGeneratedGensHaps(gens, haps, "ACEGEN20.txt", "ACEHAP20.txt")
 
 if __name__ == "__main__": 
 	main()
-

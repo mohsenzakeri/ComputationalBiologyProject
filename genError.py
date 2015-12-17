@@ -1,5 +1,5 @@
 def clac_genotype_error():
-	haps1 = read_haplotypes("ACEHAP.txt")
+	haps1 = read_haplotypes("ACEHAP50.txt")
 	haps2 = read_haplotypes("ACEHAP_Result.txt")
 	
 	error = 0
@@ -10,7 +10,7 @@ def clac_genotype_error():
 	print len(haps1)
 	print 2.0*float(error)/(len(haps1))
 def calc_switch_error():
-	haps1 = read_haplotypes("ACEHAP.txt")
+	haps1 = read_haplotypes("ACEHAP50.txt")
 	haps2 = read_haplotypes("ACEHAP_Result.txt")
 	error = 0
 	SNPcount = 0

@@ -16,6 +16,18 @@ def eval_hap(individual):
 				#print "*****"	
 	return score
 
+def eval_hap1(individual):
+	score = 0
+	number = len(individual[:][:])
+	for i in range(number/2):
+		for j in range(i+2, number):
+			snp = 0
+			for k in range(len(individual[2*i])):
+				if individual[2*i][k]==individual[j][k]:
+					snp+= 1
+			score += float(snp)/float(len(individual[2*i]))
+	return score
+	
 
 #This structure helps to sort the individuals based on their score to 
 class FitnessIndividual:
@@ -47,7 +59,7 @@ def read_first_pop():
 	global nextGenerations_collHapse
 	count = 0
 	line = ""
-	input_file = open("Out_ACEGEN.txt")
+	input_file = open("Out_ACEGEN50.txt")
 	pop = []
 	line = input_file.readline()
 	gen_count = int(line)
@@ -196,9 +208,9 @@ def getFromCollhapse(generationNumber, k):
 def generateNextGeneration(generation, generationNumber):
 	bestMutated = getBestMutated(generation, 20)
 	bestCrossovers = getBestCrossover(generation,20)		
-	prevGenSelection = getFromPrevGen(generation, 20)
+	prevGenSelection = getFromPrevGen(generation, 20) 
 	collHapseSelection = getFromCollhapse(generationNumber, 20)
-	nextGenGenerator = bestMutated + bestCrossovers + prevGenSelection + collHapseSelection
+	nextGenGenerator =  bestMutated + bestCrossovers + prevGenSelection + collHapseSelection
 
 	bestK = getBestK(nextGenGenerator, 30)
 
@@ -230,7 +242,7 @@ def runGenetic(minRun):
 		counter += 1
 		newGeneration = Generation(newGenerationIndividuals, counter+1)
 		newGeneration.findBestIndividual()
-		if counter%1==0:
+		if counter%10==0:
 			print newGeneration.bestScore
 		generations.append(newGeneration)
 		if counter>minRun:
@@ -254,9 +266,7 @@ def main():
 	nextGenerations_collHapse = []
 	
 	read_first_pop()
-	print "first gen"
-	print len(first_gen)
-	generation = runGenetic(100)
+	generation = runGenetic(50)
 	bestIndividual = generation.bestIndividual
 	
 
@@ -267,16 +277,8 @@ def main():
 			hap_file.write(str(pos))
 		hap_file.write("\n")
 
-	print 
 	number = len(bestIndividual[:][:])
-	for i in range(len(bestIndividual)):
-		print i , "\t" , bestIndividual[i]
-	print
-	for i in range(number):
-		for j in range(i+1,number):
-			if bestIndividual[i]==bestIndividual[j]:
-				print i, j
-	
+
 	
 	hap_file.close()
 
